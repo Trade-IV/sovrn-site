@@ -647,7 +647,7 @@ function ExpandedServicePanel({
           <div className="relative z-10 min-h-screen">
             <div className="flex items-start justify-between px-4 pb-4 pt-3 sm:px-6 md:px-8 md:pt-4">
               <div className="flex items-start">
-                <div className="relative -ml-4 -mt-4 h-[280px] w-[210px] sm:-ml-5 sm:-mt-5 sm:h-[380px] sm:w-[285px] md:h-[440px] md:w-[330px]">
+                <div className="relative -ml-6 -mt-6 h-[420px] w-[315px] sm:-ml-8 sm:-mt-8 sm:h-[520px] sm:w-[390px] md:h-[620px] md:w-[465px]">
                   <HomeLogoLink
                     onClick={onHomeClick}
                     className="relative z-20 block h-full w-full"
