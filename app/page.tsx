@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -119,9 +120,8 @@ export default function HomePage() {
     setActiveCard(null);
 
     if (typeof window !== "undefined") {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
     }
   };
@@ -197,7 +197,6 @@ export default function HomePage() {
         {headlineText}
       </span>
 
-      {/* MOBILE LAYOUT */}
       <section className="relative z-20 flex min-h-screen flex-col px-4 pb-10 pt-8 md:hidden">
         <div className="flex flex-col items-center">
           <motion.div
@@ -227,9 +226,9 @@ export default function HomePage() {
               className="absolute inset-0 rounded-full bg-white/10 blur-3xl"
             />
 
-            <LogoHomeButton
+            <HomeLogoLink
               onClick={goHome}
-              className="relative block"
+              className="relative z-20 block"
               imageClassName="h-auto w-[150px] select-none object-contain"
             />
           </motion.div>
@@ -303,7 +302,6 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* DESKTOP LAYOUT */}
       <motion.section
         animate={{
           y: showCards ? -270 : 0,
@@ -343,9 +341,9 @@ export default function HomePage() {
             />
 
             <div className="relative flex items-center justify-center">
-              <LogoHomeButton
+              <HomeLogoLink
                 onClick={goHome}
-                className="relative block"
+                className="relative z-20 block"
                 imageClassName="h-auto w-[500px] select-none object-contain sm:w-[650px] md:w-[800px] lg:w-[950px]"
               />
             </div>
@@ -480,18 +478,18 @@ export default function HomePage() {
   );
 }
 
-function LogoHomeButton({
+function HomeLogoLink({
   onClick,
   className,
   imageClassName,
 }: {
-  onClick: () => void;
+  onClick?: () => void;
   className?: string;
   imageClassName?: string;
 }) {
   return (
-    <button
-      type="button"
+    <Link
+      href="/"
       onClick={onClick}
       aria-label="Go To Homepage"
       className={`cursor-pointer bg-transparent p-0 outline-none transition hover:opacity-90 ${className ?? ""}`}
@@ -504,7 +502,7 @@ function LogoHomeButton({
         priority
         className={imageClassName}
       />
-    </button>
+    </Link>
   );
 }
 
@@ -533,9 +531,7 @@ function CardFace({
       }`}
     >
       <div className="absolute inset-[4px] rounded-[18px] bg-black sm:rounded-[20px]" />
-
       <div className="absolute inset-[4px] rounded-[18px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_38%)] sm:rounded-[20px]" />
-
       <motion.div
         animate={{ opacity: isHovered ? 0.16 : 0.07 }}
         transition={{ duration: 0.25 }}
@@ -652,10 +648,10 @@ function ExpandedServicePanel({
             <div className="flex items-start justify-between px-4 pb-4 pt-3 sm:px-6 md:px-8 md:pt-4">
               <div className="flex items-start">
                 <div className="relative -ml-3 -mt-3 h-[220px] w-[165px] sm:h-[320px] sm:w-[240px] sm:-ml-4 sm:-mt-4 md:h-[360px] md:w-[270px]">
-                  <LogoHomeButton
+                  <HomeLogoLink
                     onClick={onHomeClick}
-                    className="relative block h-full w-full"
-                    imageClassName="object-contain"
+                    className="relative z-20 block h-full w-full"
+                    imageClassName="h-full w-full object-contain"
                   />
                 </div>
               </div>
