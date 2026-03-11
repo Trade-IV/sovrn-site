@@ -12,7 +12,7 @@ const services = [
   "About Us",
 ];
 
-const desktopCardPositions = [
+const finalCardPositions = [
   { x: -260, y: 35, rotate: -16 },
   { x: -130, y: 16, rotate: -8 },
   { x: 0, y: 0, rotate: 0 },
@@ -112,25 +112,24 @@ export default function HomePage() {
   const [headlineWidth, setHeadlineWidth] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [activeCard, setActiveCard] = useState<number | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
 
   const headlineMeasureRef = useRef<HTMLSpanElement | null>(null);
+
+  const goHome = () => {
+    setActiveCard(null);
+
+    if (typeof window !== "undefined") {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
 
   useLayoutEffect(() => {
     if (headlineMeasureRef.current) {
       setHeadlineWidth(headlineMeasureRef.current.offsetWidth);
     }
-  }, []);
-
-  useEffect(() => {
-    const updateViewport = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    updateViewport();
-    window.addEventListener("resize", updateViewport);
-
-    return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
   useEffect(() => {
@@ -185,248 +184,143 @@ export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[650px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl sm:h-[1000px] sm:w-[1000px]" />
+        <div className="absolute left-1/2 top-1/2 h-[650px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl md:h-[1000px] md:w-[1000px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.07),transparent_45%)]" />
       </div>
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,transparent_28%,rgba(0,0,0,0.82)_100%)]" />
 
-      {!isMobile && (
-        <span
-          ref={headlineMeasureRef}
-          className="invisible absolute left-0 top-0 whitespace-nowrap text-lg font-bold uppercase tracking-[0.18em] sm:text-xl md:text-2xl"
-        >
-          {headlineText}
-        </span>
-      )}
-
-      {isMobile ? (
-        <MobileLanding
-          showCards={showCards}
-          showHeadline={showHeadline}
-          services={services}
-          activeCard={activeCard}
-          setActiveCard={setActiveCard}
-        />
-      ) : (
-        <>
-          <motion.section
-            animate={{
-              y: showCards ? -270 : 0,
-              scale: showCards ? 0.72 : 1,
-            }}
-            transition={{
-              duration: 1.2,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="relative z-20 flex min-h-screen items-center justify-center px-6"
-          >
-            <div className="flex flex-col items-center justify-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.82 }}
-                animate={{
-                  opacity: [0, 1, 1, 1],
-                  scale: [0.82, 1, 1.035, 1],
-                }}
-                transition={{
-                  duration: 2.8,
-                  times: [0, 0.25, 0.65, 1],
-                  ease: "easeInOut",
-                }}
-                className="relative"
-              >
-                <motion.div
-                  animate={{
-                    opacity: [0.18, 0.4, 0.18],
-                    scale: [1, 1.06, 1],
-                  }}
-                  transition={{
-                    duration: 2.4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="absolute inset-0 rounded-full bg-white/10 blur-3xl"
-                />
-
-                <div className="relative flex items-center justify-center">
-                  <Image
-                    src="/logo.png"
-                    alt="SOVRN Logo"
-                    width={1600}
-                    height={2200}
-                    priority
-                    className="h-auto w-[500px] select-none object-contain sm:w-[650px] md:w-[800px] lg:w-[950px]"
-                  />
-                </div>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.45, ease: "easeOut" }}
-                className="-mt-40 text-center text-3xl font-semibold tracking-[0.35em] text-zinc-100 sm:text-4xl md:text-5xl"
-              >
-                SOVRN
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
-                className="mt-0 text-center text-[10px] uppercase tracking-[0.32em] text-zinc-400 sm:text-xs"
-              >
-                Authority. Systems. Control.
-              </motion.p>
-            </div>
-          </motion.section>
-
-          <section className="pointer-events-none absolute inset-0 z-[25] flex items-center justify-center px-6">
-            {showHeadline && (
-              <motion.div
-                initial={{ opacity: 0, y: -18 }}
-                animate={{ opacity: 1, y: -50 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className="max-w-4xl"
-              >
-                <div className="relative mx-auto flex justify-center">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: headlineWidth || "auto" }}
-                    transition={{
-                      duration: 2.1,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                    className="relative overflow-hidden whitespace-nowrap"
-                  >
-                    <h2 className="text-center text-lg font-bold uppercase tracking-[0.18em] text-zinc-100 sm:text-xl md:text-2xl">
-                      {headlineText}
-                    </h2>
-
-                    <motion.span
-                      animate={
-                        typingDone
-                          ? { opacity: 0, y: 12 }
-                          : { opacity: [1, 0.25, 1], y: 0 }
-                      }
-                      transition={
-                        typingDone
-                          ? { duration: 0.4, ease: "easeOut" }
-                          : { duration: 0.75, repeat: Infinity, ease: "linear" }
-                      }
-                      className="absolute right-0 top-1/2 h-[1.15em] w-[2px] -translate-y-1/2 bg-zinc-100"
-                    />
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </section>
-
-          <section className="absolute inset-0 z-30 flex items-center justify-center px-6">
-            {showCards && (
-              <div
-                className="absolute flex items-center justify-center"
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                {services.map((service, index) => {
-                  const card = desktopCardPositions[index];
-                  const isHovered = hoveredCard === index;
-                  const isActive = activeCard === index;
-                  const isAnotherCardOpen =
-                    activeCard !== null && activeCard !== index;
-
-                  return (
-                    <motion.button
-                      key={service}
-                      type="button"
-                      initial={{
-                        x: 0,
-                        y: 520,
-                        rotate: 0,
-                        opacity: 1,
-                        scale: 0.98,
-                      }}
-                      animate={{
-                        x: fanOpen
-                          ? card.x
-                          : slideToLeft
-                            ? desktopCardPositions[0].x
-                            : 0,
-                        y: fanOpen ? card.y + (isHovered ? 130 : 190) : 190,
-                        rotate: fanOpen ? card.rotate : 0,
-                        opacity: isAnotherCardOpen ? 0 : 1,
-                        scale: isActive ? 1.02 : isHovered ? 1.04 : 1,
-                        filter: isAnotherCardOpen ? "blur(6px)" : "blur(0px)",
-                      }}
-                      transition={{
-                        duration: fanOpen ? 0.85 : slideToLeft ? 0.7 : 1.15,
-                        delay: fanOpen ? index * 0.06 : 0,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      style={{
-                        zIndex: isHovered ? 50 : index + 1,
-                        pointerEvents: activeCard !== null ? "none" : "auto",
-                      }}
-                      className="absolute cursor-pointer bg-transparent p-0 text-left outline-none"
-                      onMouseEnter={() => setHoveredCard(index)}
-                      onClick={() => setActiveCard(index)}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <CardFace label={service} isHovered={isHovered} isMobile={false} />
-                    </motion.button>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </>
-      )}
-
-      <AnimatePresence>
-        {activeCard !== null && (
-          <ExpandedServicePanel
-            index={activeCard}
-            label={services[activeCard]}
-            onClose={() => setActiveCard(null)}
-            isMobile={isMobile}
-          />
-        )}
-      </AnimatePresence>
-    </main>
-  );
-}
-
-function MobileLanding({
-  showCards,
-  showHeadline,
-  services,
-  activeCard,
-  setActiveCard,
-}: {
-  showCards: boolean;
-  showHeadline: boolean;
-  services: string[];
-  activeCard: number | null;
-  setActiveCard: (value: number | null) => void;
-}) {
-  return (
-    <>
-      <motion.section
-        animate={{
-          y: showCards ? -40 : 0,
-          scale: showCards ? 0.96 : 1,
-        }}
-        transition={{
-          duration: 1.1,
-          ease: [0.22, 1, 0.36, 1],
-        }}
-        className="relative z-20 flex min-h-screen flex-col items-center px-4 pt-10"
+      <span
+        ref={headlineMeasureRef}
+        className="invisible absolute left-0 top-0 whitespace-nowrap text-lg font-bold uppercase tracking-[0.18em] sm:text-xl md:text-2xl"
       >
+        {headlineText}
+      </span>
+
+      {/* MOBILE LAYOUT */}
+      <section className="relative z-20 flex min-h-screen flex-col px-4 pb-10 pt-8 md:hidden">
         <div className="flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.82 }}
             animate={{
               opacity: [0, 1, 1, 1],
               scale: [0.82, 1, 1.03, 1],
+              y: showCards ? -8 : 0,
+            }}
+            transition={{
+              duration: 2.3,
+              times: [0, 0.25, 0.65, 1],
+              ease: "easeInOut",
+            }}
+            className="relative"
+          >
+            <motion.div
+              animate={{
+                opacity: [0.18, 0.4, 0.18],
+                scale: [1, 1.06, 1],
+              }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute inset-0 rounded-full bg-white/10 blur-3xl"
+            />
+
+            <LogoHomeButton
+              onClick={goHome}
+              className="relative block"
+              imageClassName="h-auto w-[150px] select-none object-contain"
+            />
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: showCards ? -6 : 0 }}
+            transition={{ duration: 0.9, delay: 0.35, ease: "easeOut" }}
+            className="-mt-4 text-center text-xl font-semibold tracking-[0.22em] text-zinc-100"
+          >
+            SOVRN
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: showCards ? -6 : 0 }}
+            transition={{ duration: 0.9, delay: 0.55, ease: "easeOut" }}
+            className="mt-1 text-center text-[8px] uppercase tracking-[0.2em] text-zinc-400"
+          >
+            Authority. Systems. Control.
+          </motion.p>
+
+          {showHeadline && (
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: "easeOut" }}
+              className="mt-8 max-w-[290px]"
+            >
+              <h2 className="text-center text-xs font-bold uppercase leading-6 tracking-[0.16em] text-zinc-100">
+                Have The Strongest Hand In The Market
+              </h2>
+            </motion.div>
+          )}
+        </div>
+
+        {showCards && (
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-8"
+          >
+            <div className="flex gap-4 overflow-x-auto px-1 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {services.map((service, index) => {
+                const isAnotherCardOpen =
+                  activeCard !== null && activeCard !== index;
+
+                return (
+                  <motion.button
+                    key={service}
+                    type="button"
+                    whileTap={{ scale: 0.98 }}
+                    animate={{
+                      opacity: isAnotherCardOpen ? 0 : 1,
+                      filter: isAnotherCardOpen ? "blur(6px)" : "blur(0px)",
+                    }}
+                    transition={{ duration: 0.25 }}
+                    style={{
+                      pointerEvents: activeCard !== null ? "none" : "auto",
+                    }}
+                    className="bg-transparent p-0"
+                    onClick={() => setActiveCard(index)}
+                  >
+                    <CardFace label={service} isHovered={false} isMobile />
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </section>
+
+      {/* DESKTOP LAYOUT */}
+      <motion.section
+        animate={{
+          y: showCards ? -270 : 0,
+          scale: showCards ? 0.72 : 1,
+        }}
+        transition={{
+          duration: 1.2,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="relative z-20 hidden min-h-screen items-center justify-center px-6 md:flex"
+      >
+        <div className="flex flex-col items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.82 }}
+            animate={{
+              opacity: [0, 1, 1, 1],
+              scale: [0.82, 1, 1.035, 1],
             }}
             transition={{
               duration: 2.8,
@@ -448,21 +342,20 @@ function MobileLanding({
               className="absolute inset-0 rounded-full bg-white/10 blur-3xl"
             />
 
-            <Image
-              src="/logo.png"
-              alt="SOVRN Logo"
-              width={1600}
-              height={2200}
-              priority
-              className="h-auto w-[190px] select-none object-contain"
-            />
+            <div className="relative flex items-center justify-center">
+              <LogoHomeButton
+                onClick={goHome}
+                className="relative block"
+                imageClassName="h-auto w-[500px] select-none object-contain sm:w-[650px] md:w-[800px] lg:w-[950px]"
+              />
+            </div>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.45, ease: "easeOut" }}
-            className="-mt-8 text-center text-2xl font-semibold tracking-[0.24em] text-zinc-100"
+            className="-mt-40 text-center text-3xl font-semibold tracking-[0.35em] text-zinc-100 sm:text-4xl md:text-5xl"
           >
             SOVRN
           </motion.h1>
@@ -471,62 +364,147 @@ function MobileLanding({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
-            className="mt-1 text-center text-[9px] uppercase tracking-[0.22em] text-zinc-400"
+            className="mt-0 text-center text-[10px] uppercase tracking-[0.32em] text-zinc-400 sm:text-xs"
           >
             Authority. Systems. Control.
           </motion.p>
         </div>
+      </motion.section>
 
+      <section className="pointer-events-none absolute inset-0 z-[25] hidden items-center justify-center px-6 md:flex">
         {showHeadline && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -18 }}
+            animate={{ opacity: 1, y: -50 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="mt-10 max-w-[310px]"
+            className="max-w-4xl"
           >
-            <h2 className="text-center text-sm font-bold uppercase leading-6 tracking-[0.16em] text-zinc-100">
-              Have The Strongest Hand In The Market
-            </h2>
-          </motion.div>
-        )}
+            <div className="relative mx-auto flex justify-center">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: headlineWidth || "auto" }}
+                transition={{
+                  duration: 2.1,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="relative overflow-hidden whitespace-nowrap"
+              >
+                <h2 className="text-center text-lg font-bold uppercase tracking-[0.18em] text-zinc-100 sm:text-xl md:text-2xl">
+                  {headlineText}
+                </h2>
 
-        {showCards && (
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative mt-10 w-full"
-          >
-            <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-8">
-              {services.map((service, index) => {
-                const isAnotherCardOpen =
-                  activeCard !== null && activeCard !== index;
-
-                return (
-                  <motion.button
-                    key={service}
-                    type="button"
-                    whileTap={{ scale: 0.98 }}
-                    animate={{
-                      opacity: isAnotherCardOpen ? 0 : 1,
-                      filter: isAnotherCardOpen ? "blur(6px)" : "blur(0px)",
-                    }}
-                    transition={{ duration: 0.25 }}
-                    style={{
-                      pointerEvents: activeCard !== null ? "none" : "auto",
-                    }}
-                    className="snap-center bg-transparent p-0"
-                    onClick={() => setActiveCard(index)}
-                  >
-                    <CardFace label={service} isHovered={false} isMobile />
-                  </motion.button>
-                );
-              })}
+                <motion.span
+                  animate={
+                    typingDone
+                      ? { opacity: 0, y: 12 }
+                      : { opacity: [1, 0.25, 1], y: 0 }
+                  }
+                  transition={
+                    typingDone
+                      ? { duration: 0.4, ease: "easeOut" }
+                      : { duration: 0.75, repeat: Infinity, ease: "linear" }
+                  }
+                  className="absolute right-0 top-1/2 h-[1.15em] w-[2px] -translate-y-1/2 bg-zinc-100"
+                />
+              </motion.div>
             </div>
           </motion.div>
         )}
-      </motion.section>
-    </>
+      </section>
+
+      <section className="absolute inset-0 z-30 hidden items-center justify-center px-6 md:flex">
+        {showCards && (
+          <div
+            className="absolute flex items-center justify-center"
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            {services.map((service, index) => {
+              const card = finalCardPositions[index];
+              const isHovered = hoveredCard === index;
+              const isActive = activeCard === index;
+              const isAnotherCardOpen =
+                activeCard !== null && activeCard !== index;
+
+              return (
+                <motion.button
+                  key={service}
+                  type="button"
+                  initial={{
+                    x: 0,
+                    y: 520,
+                    rotate: 0,
+                    opacity: 1,
+                    scale: 0.98,
+                  }}
+                  animate={{
+                    x: fanOpen ? card.x : slideToLeft ? finalCardPositions[0].x : 0,
+                    y: fanOpen ? card.y + (isHovered ? 130 : 190) : 190,
+                    rotate: fanOpen ? card.rotate : 0,
+                    opacity: isAnotherCardOpen ? 0 : 1,
+                    scale: isActive ? 1.02 : isHovered ? 1.04 : 1,
+                    filter: isAnotherCardOpen ? "blur(6px)" : "blur(0px)",
+                  }}
+                  transition={{
+                    duration: fanOpen ? 0.85 : slideToLeft ? 0.7 : 1.15,
+                    delay: fanOpen ? index * 0.06 : 0,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  style={{
+                    zIndex: isHovered ? 50 : index + 1,
+                    pointerEvents: activeCard !== null ? "none" : "auto",
+                  }}
+                  className="absolute cursor-pointer bg-transparent p-0 text-left outline-none"
+                  onMouseEnter={() => setHoveredCard(index)}
+                  onClick={() => setActiveCard(index)}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <CardFace label={service} isHovered={isHovered} isMobile={false} />
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <AnimatePresence>
+        {activeCard !== null && (
+          <ExpandedServicePanel
+            index={activeCard}
+            label={services[activeCard]}
+            onClose={() => setActiveCard(null)}
+            onHomeClick={goHome}
+          />
+        )}
+      </AnimatePresence>
+    </main>
+  );
+}
+
+function LogoHomeButton({
+  onClick,
+  className,
+  imageClassName,
+}: {
+  onClick: () => void;
+  className?: string;
+  imageClassName?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Go To Homepage"
+      className={`cursor-pointer bg-transparent p-0 outline-none transition hover:opacity-90 ${className ?? ""}`}
+    >
+      <Image
+        src="/logo.png"
+        alt="SOVRN Logo"
+        width={1600}
+        height={2200}
+        priority
+        className={imageClassName}
+      />
+    </button>
   );
 }
 
@@ -550,8 +528,8 @@ function CardFace({
           : "rgba(255,255,255,0.72)",
       }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className={`relative overflow-hidden rounded-[22px] border-[2px] bg-white ${
-        isMobile ? "h-[240px] w-[160px] shrink-0" : "h-[300px] w-[200px] sm:h-[340px] sm:w-[220px]"
+      className={`relative overflow-hidden rounded-[24px] border-[2px] bg-white ${
+        isMobile ? "h-[230px] w-[155px] shrink-0" : "h-[300px] w-[200px] sm:h-[340px] sm:w-[220px]"
       }`}
     >
       <div className="absolute inset-[4px] rounded-[18px] bg-black sm:rounded-[20px]" />
@@ -566,7 +544,7 @@ function CardFace({
 
       <div
         className={`absolute left-[2px] top-[2px] overflow-hidden ${
-          isMobile ? "h-[72px] w-[72px]" : "h-[92px] w-[92px] sm:left-[3px] sm:top-[3px] sm:h-[110px] sm:w-[110px]"
+          isMobile ? "h-[68px] w-[68px]" : "h-[92px] w-[92px] sm:left-[3px] sm:top-[3px] sm:h-[110px] sm:w-[110px]"
         }`}
       >
         <Image
@@ -576,7 +554,7 @@ function CardFace({
           height={280}
           className={`absolute h-auto object-contain ${
             isMobile
-              ? "left-[-23px] top-[-6px] w-[108px]"
+              ? "left-[-22px] top-[-5px] w-[102px]"
               : "left-[-30px] top-[-8px] w-[140px] sm:left-[-34px] sm:top-[-10px] sm:w-[165px]"
           }`}
         />
@@ -584,7 +562,7 @@ function CardFace({
 
       <div
         className={`absolute bottom-[2px] right-[2px] overflow-hidden ${
-          isMobile ? "h-[72px] w-[72px]" : "h-[92px] w-[92px] sm:bottom-[3px] sm:right-[3px] sm:h-[110px] sm:w-[110px]"
+          isMobile ? "h-[68px] w-[68px]" : "h-[92px] w-[92px] sm:bottom-[3px] sm:right-[3px] sm:h-[110px] sm:w-[110px]"
         }`}
       >
         <Image
@@ -594,7 +572,7 @@ function CardFace({
           height={280}
           className={`absolute h-auto rotate-180 object-contain ${
             isMobile
-              ? "bottom-[-6px] right-[-23px] w-[108px]"
+              ? "bottom-[-5px] right-[-22px] w-[102px]"
               : "bottom-[-8px] right-[-30px] w-[140px] sm:bottom-[-10px] sm:right-[-34px] sm:w-[165px]"
           }`}
         />
@@ -613,17 +591,14 @@ function ExpandedServicePanel({
   index,
   label,
   onClose,
-  isMobile,
+  onHomeClick,
 }: {
   index: number;
   label: string;
   onClose: () => void;
-  isMobile: boolean;
+  onHomeClick: () => void;
 }) {
-  const card = isMobile
-    ? { x: 0, y: 0, rotate: 0 }
-    : desktopCardPositions[index];
-
+  const card = finalCardPositions[index];
   const content = serviceContent[label];
 
   return (
@@ -640,9 +615,9 @@ function ExpandedServicePanel({
       <motion.section
         initial={{
           opacity: 0,
-          scale: isMobile ? 0.92 : 0.24,
+          scale: 0.24,
           x: card.x,
-          y: isMobile ? 40 : card.y + 190,
+          y: card.y + 190,
           rotate: card.rotate,
           filter: "blur(8px)",
         }}
@@ -668,27 +643,19 @@ function ExpandedServicePanel({
       >
         <div className="relative h-screen w-full overflow-y-auto bg-black">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/2 top-[18%] h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-white/8 blur-3xl sm:top-[28%] sm:h-[700px] sm:w-[700px]" />
+            <div className="absolute left-1/2 top-[28%] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-white/8 blur-3xl" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.10),transparent_32%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.84)_100%)]" />
           </div>
 
           <div className="relative z-10 min-h-screen">
-            <div className="flex items-start justify-between px-3 pb-3 pt-3 sm:px-6 md:px-8 md:pt-4">
+            <div className="flex items-start justify-between px-4 pb-4 pt-3 sm:px-6 md:px-8 md:pt-4">
               <div className="flex items-start">
-                <div
-                  className={`relative ${
-                    isMobile
-                      ? "-ml-2 -mt-2 h-[170px] w-[128px]"
-                      : "-ml-3 -mt-3 h-[320px] w-[240px] sm:-ml-4 sm:-mt-4 sm:h-[360px] sm:w-[270px]"
-                  }`}
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="SOVRN Logo"
-                    fill
-                    className="object-contain"
-                    priority
+                <div className="relative -ml-3 -mt-3 h-[220px] w-[165px] sm:h-[320px] sm:w-[240px] sm:-ml-4 sm:-mt-4 md:h-[360px] md:w-[270px]">
+                  <LogoHomeButton
+                    onClick={onHomeClick}
+                    className="relative block h-full w-full"
+                    imageClassName="object-contain"
                   />
                 </div>
               </div>
@@ -698,13 +665,13 @@ function ExpandedServicePanel({
                 onClick={onClose}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
-                className="sticky top-3 z-20 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10 sm:top-4 sm:px-4 sm:text-xs sm:tracking-[0.22em]"
+                className="sticky top-4 z-20 rounded-full border border-white/15 bg-black/55 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-zinc-200 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10"
               >
                 Close
               </motion.button>
             </div>
 
-            <div className="px-4 pb-14 pt-0 sm:px-8 md:px-12 md:pb-24">
+            <div className="px-4 pb-16 pt-2 sm:px-8 md:px-12 md:pb-24">
               <div className="grid w-full gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
                 <motion.div
                   initial={{ opacity: 0, y: 24 }}
@@ -712,7 +679,7 @@ function ExpandedServicePanel({
                   transition={{ duration: 0.55, delay: 0.18, ease: "easeOut" }}
                   className="max-w-3xl"
                 >
-                  <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.26em] text-zinc-500 sm:mb-4 sm:text-[11px] sm:tracking-[0.32em]">
+                  <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.32em] text-zinc-500 sm:text-xs">
                     {content.eyebrow}
                   </p>
 
@@ -720,7 +687,7 @@ function ExpandedServicePanel({
                     {content.title}
                   </h2>
 
-                  <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 sm:mt-6 sm:text-base sm:leading-8">
+                  <p className="mt-6 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base sm:leading-8">
                     {content.description}
                   </p>
                 </motion.div>
@@ -731,8 +698,8 @@ function ExpandedServicePanel({
                   transition={{ duration: 0.55, delay: 0.28, ease: "easeOut" }}
                   className="flex items-start"
                 >
-                  <div className="w-full rounded-[24px] border border-white/12 bg-white/[0.03] p-5 shadow-[0_20px_100px_rgba(255,255,255,0.06)] backdrop-blur-xl sm:rounded-[30px] sm:p-8">
-                    <p className="mb-5 text-[10px] uppercase tracking-[0.24em] text-zinc-500 sm:mb-6 sm:text-[11px] sm:tracking-[0.28em]">
+                  <div className="w-full rounded-[30px] border border-white/12 bg-white/[0.03] p-6 shadow-[0_20px_100px_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8">
+                    <p className="mb-6 text-[11px] uppercase tracking-[0.28em] text-zinc-500 sm:text-xs">
                       {label}
                     </p>
 
