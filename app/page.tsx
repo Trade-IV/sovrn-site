@@ -3,13 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  ChangeEvent,
+  FormEvent,
+} from "react";
 
 const services = [
   "CRM Systems",
   "Lead-Gen",
   "Automation",
-  "Pricing",
+  "Request A Quote",
   "About Us",
 ];
 
@@ -74,18 +81,18 @@ const serviceContent: Record<
       "Systems That Keep Moving Even After Hours",
     ],
   },
-  Pricing: {
-    eyebrow: "Engagement",
-    title: "Pricing Structured Around Real Outcomes.",
+  "Request A Quote": {
+    eyebrow: "Inquiry",
+    title: "Request A Quote.",
     description:
-      "Pricing Should Reflect The Depth Of The System Being Built. This Section Can Later Evolve Into Your Actual Offer Ladder, Scope Structure, Or Engagement Model.",
+      "Tell us about your business, what you need, and how to reach you. We’ll review the request and follow up with the right next step.",
     bullets: [
-      "Retainers, Builds, Or Hybrid Structures",
-      "Clear Scope Tied To Business Priorities",
-      "Premium Positioning Without Clutter",
-      "Room For Custom Engagement Logic Later",
-      "Expandable Framework For Multiple Service Tiers",
-      "Built To Support Premium Perception And Clarity",
+      "Business + Contact Info",
+      "Service Interest Selection",
+      "Project Scope / Notes",
+      "Clean Submission Flow",
+      "Direct Entry Into Internal Sheet",
+      "Built For Fast Qualification",
     ],
   },
   "About Us": {
@@ -596,6 +603,7 @@ function ExpandedServicePanel({
 }) {
   const card = finalCardPositions[index];
   const content = serviceContent[label];
+  const isQuoteCard = label === "Request A Quote";
 
   return (
     <>
@@ -668,57 +676,303 @@ function ExpandedServicePanel({
             </div>
 
             <div className="px-4 pb-16 pt-2 sm:px-8 md:px-12 md:pb-24">
-              <div className="grid w-full gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, delay: 0.18, ease: "easeOut" }}
-                  className="max-w-3xl"
-                >
-                  <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.32em] text-zinc-500 sm:text-xs">
-                    {content.eyebrow}
-                  </p>
-
-                  <h2 className="max-w-4xl text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-zinc-100 sm:text-5xl md:text-6xl lg:text-7xl">
-                    {content.title}
-                  </h2>
-
-                  <p className="mt-6 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base sm:leading-8">
-                    {content.description}
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, delay: 0.28, ease: "easeOut" }}
-                  className="flex items-start"
-                >
-                  <div className="w-full rounded-[30px] border border-white/12 bg-white/[0.03] p-6 shadow-[0_20px_100px_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8">
-                    <p className="mb-6 text-[11px] uppercase tracking-[0.28em] text-zinc-500 sm:text-xs">
-                      {label}
+              {isQuoteCard ? (
+                <QuoteRequestForm />
+              ) : (
+                <div className="grid w-full gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.55, delay: 0.18, ease: "easeOut" }}
+                    className="max-w-3xl"
+                  >
+                    <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.32em] text-zinc-500 sm:text-xs">
+                      {content.eyebrow}
                     </p>
 
-                    <div className="space-y-4">
-                      {content.bullets.map((bullet) => (
-                        <div
-                          key={bullet}
-                          className="flex items-start gap-3 border-b border-white/8 pb-4 last:border-b-0 last:pb-0"
-                        >
-                          <div className="mt-[7px] h-[6px] w-[6px] rounded-full bg-white/70" />
-                          <p className="text-sm leading-7 text-zinc-300 sm:text-base">
-                            {bullet}
-                          </p>
-                        </div>
-                      ))}
+                    <h2 className="max-w-4xl text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-zinc-100 sm:text-5xl md:text-6xl lg:text-7xl">
+                      {content.title}
+                    </h2>
+
+                    <p className="mt-6 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base sm:leading-8">
+                      {content.description}
+                    </p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 28 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.55, delay: 0.28, ease: "easeOut" }}
+                    className="flex items-start"
+                  >
+                    <div className="w-full rounded-[30px] border border-white/12 bg-white/[0.03] p-6 shadow-[0_20px_100px_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8">
+                      <p className="mb-6 text-[11px] uppercase tracking-[0.28em] text-zinc-500 sm:text-xs">
+                        {label}
+                      </p>
+
+                      <div className="space-y-4">
+                        {content.bullets.map((bullet) => (
+                          <div
+                            key={bullet}
+                            className="flex items-start gap-3 border-b border-white/8 pb-4 last:border-b-0 last:pb-0"
+                          >
+                            <div className="mt-[7px] h-[6px] w-[6px] rounded-full bg-white/70" />
+                            <p className="text-sm leading-7 text-zinc-300 sm:text-base">
+                              {bullet}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              </div>
+                  </motion.div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </motion.section>
     </>
+  );
+}
+
+function QuoteRequestForm() {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    businessName: "",
+    email: "",
+    phone: "",
+    service: "",
+    website: "",
+    monthlyRevenue: "",
+    message: "",
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitState("idle");
+
+    try {
+      const res = await fetch("/api/request-quote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        throw new Error("Submission failed");
+      }
+
+      setSubmitState("success");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        businessName: "",
+        email: "",
+        phone: "",
+        service: "",
+        website: "",
+        monthlyRevenue: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error(error);
+      setSubmitState("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.18, ease: "easeOut" }}
+        className="mb-10 max-w-3xl"
+      >
+        <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.32em] text-zinc-500 sm:text-xs">
+          Inquiry
+        </p>
+
+        <h2 className="max-w-4xl text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-zinc-100 sm:text-5xl md:text-6xl lg:text-7xl">
+          Request A Quote.
+        </h2>
+
+        <p className="mt-6 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base sm:leading-8">
+          Tell us about your business, what you need, and the best way to reach you.
+        </p>
+      </motion.div>
+
+      <motion.form
+        initial={{ opacity: 0, y: 28 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.28, ease: "easeOut" }}
+        onSubmit={handleSubmit}
+        className="rounded-[30px] border border-white/12 bg-white/[0.03] p-6 shadow-[0_20px_100px_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-8"
+      >
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              First Name
+            </label>
+            <input
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Last Name
+            </label>
+            <input
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Business Name
+            </label>
+            <input
+              name="businessName"
+              value={formData.businessName}
+              onChange={handleChange}
+              required
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Phone
+            </label>
+            <input
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Service Needed
+            </label>
+            <select
+              name="service"
+              value={formData.service}
+              onChange={handleChange}
+              required
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            >
+              <option value="">Select a service</option>
+              <option value="CRM Systems">CRM Systems</option>
+              <option value="Lead-Gen">Lead-Gen</option>
+              <option value="Automation">Automation</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Website
+            </label>
+            <input
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
+              placeholder="https://"
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              Monthly Revenue
+            </label>
+            <input
+              name="monthlyRevenue"
+              value={formData.monthlyRevenue}
+              onChange={handleChange}
+              placeholder="$"
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            />
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <label className="mb-2 block text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            Project Details
+          </label>
+          <textarea
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            rows={6}
+            required
+            className="w-full rounded-[24px] border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+            placeholder="Tell us what you need, what stage you're at, and what kind of outcome you're after."
+          />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-full border border-white/15 bg-white px-6 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? "Submitting..." : "Submit"}
+          </button>
+
+          {submitState === "success" && (
+            <p className="text-sm text-emerald-400">
+              Quote request submitted successfully.
+            </p>
+          )}
+
+          {submitState === "error" && (
+            <p className="text-sm text-red-400">
+              Something went wrong. Please try again.
+            </p>
+          )}
+        </div>
+      </motion.form>
+    </div>
   );
 }
