@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   title: "SOVRN",
   description: "Authority. Systems. Control.",
   icons: {
-    icon: [{ url: "/favicon-y10.png?v=1", type: "image/png", sizes: "512x512" }],
-    apple: [{ url: "/favicon-y10.png?v=1", type: "image/png", sizes: "180x180" }],
+    icon: [{ url: "/favicon-y80.png?v=1", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/favicon-y80.png?v=1", type: "image/png", sizes: "180x180" }],
   },
 };
 
