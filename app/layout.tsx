@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/favicon-down70.png?v=1",
+        url: "/favicon-down110.png?v=1",
         type: "image/png",
         sizes: "512x512",
       },
     ],
     apple: [
       {
-        url: "/favicon-down70.png?v=1",
+        url: "/favicon-down110.png?v=1",
         type: "image/png",
         sizes: "180x180",
       },
