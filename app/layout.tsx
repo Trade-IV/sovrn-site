@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: "Authority. Systems. Control.",
   icons: {
     icon: [
-      { url: "/favicon.png?v=19", type: "image/png", sizes: "512x512" },
-      { url: "/favicon.ico?v=19", rel: "shortcut icon" },
+      { url: "/favicon.png?v=20", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico?v=20", rel: "shortcut icon" },
     ],
-    apple: [{ url: "/favicon.png?v=19", sizes: "180x180", type: "image/png" }],
-    shortcut: ["/favicon.ico?v=19"],
+    apple: [{ url: "/favicon.png?v=20", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico?v=20"],
   },
 };
 
