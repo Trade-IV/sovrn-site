@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -120,6 +121,7 @@ export default function HomePage() {
   const [headlineWidth, setHeadlineWidth] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [activeCard, setActiveCard] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const headlineMeasureRef = useRef<HTMLSpanElement | null>(null);
 
@@ -190,6 +192,123 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
+      {/* ── Hamburger Menu ── */}
+      <div className="fixed left-0 top-0 z-[100]">
+        {/* Hamburger button */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          className="relative z-[110] m-4 flex h-10 w-10 flex-col items-center justify-center gap-[5px] rounded-lg bg-white/[0.06] backdrop-blur-md transition-all duration-300 hover:bg-white/[0.12] md:m-6 md:h-11 md:w-11"
+        >
+          <span
+            className={`block h-[2px] w-5 rounded-full bg-white transition-all duration-300 ${menuOpen ? "translate-y-[7px] rotate-45" : ""}`}
+          />
+          <span
+            className={`block h-[2px] w-5 rounded-full bg-white transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`}
+          />
+          <span
+            className={`block h-[2px] w-5 rounded-full bg-white transition-all duration-300 ${menuOpen ? "-translate-y-[7px] -rotate-45" : ""}`}
+          />
+        </button>
+
+        {/* Backdrop */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              key="menu-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-[100] bg-black/60"
+              onClick={() => setMenuOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Slide-out panel */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.nav
+              key="menu-panel"
+              initial={{ x: "-100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "-100%", opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed left-0 top-0 z-[105] flex h-screen w-[260px] flex-col border-r border-white/[0.06] bg-black/90 backdrop-blur-xl"
+            >
+              {/* Spacer for hamburger button */}
+              <div className="h-20 md:h-24" />
+
+              {/* Menu items */}
+              <div className="flex flex-col gap-1 px-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    // Placeholder — will trigger audit flow later
+                  }}
+                  className="flex items-center gap-3 rounded-lg px-4 py-3.5 text-left text-[15px] font-medium tracking-wide text-zinc-300 transition-all duration-200 hover:bg-white/[0.06] hover:text-white"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-60"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  Run Audit
+                  <span className="ml-auto rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-500">
+                    Soon
+                  </span>
+                </button>
+
+                <Link
+                  href="/app/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-4 py-3.5 text-[15px] font-medium tracking-wide text-zinc-300 transition-all duration-200 hover:bg-white/[0.06] hover:text-white"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-60"
+                  >
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                  Login
+                </Link>
+              </div>
+
+              {/* Bottom branding */}
+              <div className="mt-auto border-t border-white/[0.06] px-6 py-5">
+                <p className="text-[9px] uppercase tracking-[0.25em] text-zinc-600">
+                  SOVRN &mdash; Authority. Systems. Control.
+                </p>
+              </div>
+            </motion.nav>
+          )}
+        </AnimatePresence>
+      </div>
+
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/2 h-[650px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl md:h-[1000px] md:w-[1000px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.07),transparent_45%)]" />
