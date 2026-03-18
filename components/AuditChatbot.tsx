@@ -271,11 +271,7 @@ export default function AuditChatbot({
             S
           </div>
           <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white/[0.06] px-4 py-3 text-[14px] leading-relaxed text-zinc-200">
-            {i === 0 && answers.name
-              ? s.question
-              : i > 0 && answers.name
-                ? s.question.replace("you", `you, ${answers.name},`)
-                : s.question}
+            {s.question}
           </div>
         </motion.div>
       );
