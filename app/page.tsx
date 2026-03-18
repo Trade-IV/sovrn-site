@@ -12,6 +12,7 @@ import {
   ChangeEvent,
   FormEvent,
 } from "react";
+import AuditChatbot from "@/components/AuditChatbot";
 
 const services = [
   "CRM Systems",
@@ -122,6 +123,7 @@ export default function HomePage() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [activeCard, setActiveCard] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
 
   const headlineMeasureRef = useRef<HTMLSpanElement | null>(null);
 
@@ -190,6 +192,16 @@ export default function HomePage() {
     };
   }, [activeCard]);
 
+  // Listen for "Book A Strategy Call" from audit results
+  useEffect(() => {
+    const handler = () => {
+      // Open the "Request A Quote" card (index 3)
+      setActiveCard(3);
+    };
+    window.addEventListener("sovrn:open-quote", handler);
+    return () => window.removeEventListener("sovrn:open-quote", handler);
+  }, []);
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
       {/* ── Hamburger Menu ── */}
@@ -247,7 +259,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
-                    // Placeholder — will trigger audit flow later
+                    setTimeout(() => setAuditOpen(true), 200);
                   }}
                   className="flex items-center gap-3 rounded-lg px-4 py-3.5 text-left text-[15px] font-medium tracking-wide text-zinc-300 transition-all duration-200 hover:bg-white/[0.06] hover:text-white"
                 >
@@ -269,9 +281,6 @@ export default function HomePage() {
                     <polyline points="10 9 9 9 8 9" />
                   </svg>
                   Run Audit
-                  <span className="ml-auto rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-500">
-                    Soon
-                  </span>
                 </button>
 
                 <Link
@@ -600,6 +609,9 @@ export default function HomePage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Audit Chatbot */}
+      <AuditChatbot open={auditOpen} onClose={() => setAuditOpen(false)} />
     </main>
   );
 }
