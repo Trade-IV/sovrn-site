@@ -17,7 +17,7 @@ import AuditChatbot from "@/components/AuditChatbot";
 const services = [
   "CRM Systems",
   "Lead-Gen",
-  "Automation",
+  "Run An Audit",
   "Request A Quote",
   "About Us",
 ];
@@ -69,20 +69,7 @@ const serviceContent: Record<
       "Better Flow From Click To Booked Appointment",
     ],
   },
-  Automation: {
-    eyebrow: "Execution",
-    title: "Automation That Removes Friction.",
-    description:
-      "From Intake To Follow-Up To Internal Workflows, Automation Is Used To Eliminate Repetitive Work And Create A Tighter, Faster Operating Rhythm.",
-    bullets: [
-      "Automated Follow-Up And Response Flows",
-      "Internal Workflow Simplification",
-      "Reduced Admin Drag Across The Team",
-      "Faster Movement From Inquiry To Action",
-      "Less Manual Checking Between Tools And People",
-      "Systems That Keep Moving Even After Hours",
-    ],
-  },
+  // "Run An Audit" card opens the audit chatbot directly — no expanded panel needed
   "Request A Quote": {
     eyebrow: "Inquiry",
     title: "Request A Quote.",
@@ -426,7 +413,13 @@ export default function HomePage() {
                       pointerEvents: activeCard !== null ? "none" : "auto",
                     }}
                     className="bg-transparent p-0"
-                    onClick={() => setActiveCard(index)}
+                    onClick={() => {
+                      if (service === "Run An Audit") {
+                        setAuditOpen(true);
+                      } else {
+                        setActiveCard(index);
+                      }
+                    }}
                   >
                     <CardFace label={service} isHovered={false} isMobile />
                   </motion.button>
@@ -588,7 +581,13 @@ export default function HomePage() {
                   }}
                   className="absolute cursor-pointer bg-transparent p-0 text-left outline-none"
                   onMouseEnter={() => setHoveredCard(index)}
-                  onClick={() => setActiveCard(index)}
+                  onClick={() => {
+                    if (service === "Run An Audit") {
+                      setAuditOpen(true);
+                    } else {
+                      setActiveCard(index);
+                    }
+                  }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <CardFace label={service} isHovered={isHovered} isMobile={false} />
