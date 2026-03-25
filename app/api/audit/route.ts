@@ -174,3 +174,58 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// Save audit lead to CRM
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { firstName, lastName, email, auditAnswers, auditResult } = body;
+
+    if (!firstName || !lastName || !email) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Forward to CRM API
+    const crmUrl = process.env.CRM_API_URL || "https://sovrnhq.com/app";
+    try {
+      await fetch(`${crmUrl}/api/audit-leads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Origin": "https://sovrnhq.com",
+        },
+        body: JSON.stringify({ firstName, lastName, email, auditAnswers, auditResult }),
+      });
+    } catch (crmErr) {
+      console.error("Failed to save to CRM:", crmErr);
+      // Non-blocking — audit still works even if CRM save fails
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Audit lead save error:", err);
+    return NextResponse.json({ error: "Failed to save lead" }, { status: 500 });
+  }
+}
+
+// Send audit results via email (placeholder — wire up email provider later)
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { email, result, name } = body;
+
+    if (!email || !result) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // TODO: Wire up email sending (Resend, SendGrid, etc.)
+    // For now, log the request
+    console.log(`[Audit Email] Would send results to ${email} for ${name}`);
+    console.log(`[Audit Email] Annual impact: $${result.annualImpact?.toLocaleString()}`);
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Audit email error:", err);
+    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+  }
+}

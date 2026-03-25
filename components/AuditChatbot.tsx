@@ -142,6 +142,15 @@ export default function AuditChatbot({
   const [computing, setComputing] = useState(false);
   const [error, setError] = useState("");
 
+  // Lead capture state
+  const [phase, setPhase] = useState<"questions" | "capture" | "results">("questions");
+  const [captureFirst, setCaptureFirst] = useState("");
+  const [captureLast, setCaptureLast] = useState("");
+  const [captureEmail, setCaptureEmail] = useState("");
+  const [captureError, setCaptureError] = useState("");
+  const [captureSubmitting, setCaptureSubmitting] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -183,6 +192,13 @@ export default function AuditChatbot({
     setResult(null);
     setComputing(false);
     setError("");
+    setPhase("questions");
+    setCaptureFirst("");
+    setCaptureLast("");
+    setCaptureEmail("");
+    setCaptureError("");
+    setCaptureSubmitting(false);
+    setEmailSent(false);
   };
 
   const handleClose = () => {
@@ -206,49 +222,110 @@ export default function AuditChatbot({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((s) => s + 1);
     } else {
-      // Last question answered — compute
+      // Last question answered — go to lead capture
       setCurrentStep(STEPS.length);
-      setComputing(true);
-      setError("");
-
-      try {
-        const payload = {
-          name: updated.name || "Friend",
-          businessType: updated.businessType || "General Local Business",
-          monthlyLeads: parseInt(updated.monthlyLeads || "0"),
-          responseTime: updated.responseTime || "15-60 minutes",
-          followUpConsistency:
-            updated.followUpConsistency || "Inconsistent",
-          adminHoursPerWeek: parseInt(updated.adminHoursPerWeek || "0"),
-          missedCallsPerWeek: parseInt(updated.missedCallsPerWeek || "0"),
-          closeRate: parseInt(updated.closeRate || "0"),
-          avgCustomerValue: parseInt(
-            (updated.avgCustomerValue || "0").replace(/[^0-9]/g, "")
-          ),
-          noShowFrequency: updated.noShowFrequency || "Sometimes",
-          hasAutomation: updated.hasAutomation || "No",
-        };
-
-        const res = await fetch("/api/audit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) throw new Error("Audit failed");
-        const data: AuditResult = await res.json();
-        setResult(data);
-      } catch {
-        setError("Something went wrong computing your audit. Please try again.");
-      } finally {
-        setComputing(false);
-      }
+      setPhase("capture");
     }
   };
 
   /* ── Select option handler ── */
   const selectOption = (option: string) => {
     submitAnswer(option);
+  };
+
+  /* ── Compute audit results ── */
+  const computeAuditResults = async (allAnswers: Record<string, string>): Promise<AuditResult | null> => {
+    const payload = {
+      name: allAnswers.name || "Friend",
+      businessType: allAnswers.businessType || "General Local Business",
+      monthlyLeads: parseInt(allAnswers.monthlyLeads || "0"),
+      responseTime: allAnswers.responseTime || "15-60 minutes",
+      followUpConsistency: allAnswers.followUpConsistency || "Inconsistent",
+      adminHoursPerWeek: parseInt(allAnswers.adminHoursPerWeek || "0"),
+      missedCallsPerWeek: parseInt(allAnswers.missedCallsPerWeek || "0"),
+      closeRate: parseInt(allAnswers.closeRate || "0"),
+      avgCustomerValue: parseInt((allAnswers.avgCustomerValue || "0").replace(/[^0-9]/g, "")),
+      noShowFrequency: allAnswers.noShowFrequency || "Sometimes",
+      hasAutomation: allAnswers.hasAutomation || "No",
+    };
+
+    const res = await fetch("/api/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("Audit failed");
+    return (await res.json()) as AuditResult;
+  };
+
+  /* ── Lead capture submit ── */
+  const handleCaptureSubmit = async () => {
+    setCaptureError("");
+
+    if (!captureFirst.trim()) { setCaptureError("First name is required"); return; }
+    if (!captureLast.trim()) { setCaptureError("Last name is required"); return; }
+    if (!captureEmail.trim()) { setCaptureError("Email is required"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(captureEmail)) {
+      setCaptureError("Please enter a valid email address");
+      return;
+    }
+
+    setCaptureSubmitting(true);
+    setComputing(true);
+    setError("");
+
+    try {
+      // Compute audit results
+      const auditData = await computeAuditResults(answers);
+      if (!auditData) throw new Error("Audit computation failed");
+
+      // Save lead + audit to CRM
+      try {
+        await fetch("/api/audit", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: captureFirst.trim(),
+            lastName: captureLast.trim(),
+            email: captureEmail.trim().toLowerCase(),
+            auditAnswers: answers,
+            auditResult: auditData,
+          }),
+        });
+      } catch {
+        // Non-blocking — results still show even if CRM save fails
+        console.error("Failed to save audit lead to CRM");
+      }
+
+      setResult(auditData);
+      setPhase("results");
+    } catch {
+      setError("Something went wrong computing your audit. Please try again.");
+    } finally {
+      setComputing(false);
+      setCaptureSubmitting(false);
+    }
+  };
+
+  /* ── Email results to user ── */
+  const handleEmailResults = async () => {
+    if (!captureEmail || !result) return;
+    setEmailSent(true);
+    // Fire-and-forget email request
+    try {
+      await fetch("/api/audit", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: captureEmail.trim().toLowerCase(),
+          result,
+          name: answers.name || "Friend",
+        }),
+      });
+    } catch {
+      // Silent fail — button already shows "Sent!"
+    }
   };
 
   /* ── Render conversation history ── */
@@ -372,14 +449,14 @@ export default function AuditChatbot({
               </div>
 
               {/* Progress bar */}
-              {!result && (
+              {phase !== "results" && !result && (
                 <div className="shrink-0 px-5 pt-3">
                   <div className="flex items-center justify-between pb-2">
                     <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
                       Progress
                     </span>
                     <span className="text-[10px] tabular-nums text-zinc-500">
-                      {Math.min(currentStep, STEPS.length)} / {STEPS.length}
+                      {phase === "capture" ? STEPS.length : Math.min(currentStep, STEPS.length)} / {STEPS.length}
                     </span>
                   </div>
                   <div className="h-[3px] w-full overflow-hidden rounded-full bg-white/[0.06]">
@@ -387,7 +464,7 @@ export default function AuditChatbot({
                       className="h-full rounded-full bg-white/40"
                       initial={{ width: "0%" }}
                       animate={{
-                        width: `${(Math.min(currentStep, STEPS.length) / STEPS.length) * 100}%`,
+                        width: phase === "capture" ? "100%" : `${(Math.min(currentStep, STEPS.length) / STEPS.length) * 100}%`,
                       }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
                     />
@@ -401,7 +478,7 @@ export default function AuditChatbot({
                 className="flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {/* Result screen */}
-                {result ? (
+                {phase === "results" && result ? (
                   <ResultScreen
                     result={result}
                     name={answers.name || "Friend"}
@@ -410,7 +487,102 @@ export default function AuditChatbot({
                       reset();
                     }}
                     onClose={handleClose}
+                    email={captureEmail}
+                    emailSent={emailSent}
+                    onEmailResults={handleEmailResults}
                   />
+                ) : phase === "capture" ? (
+                  /* ── Lead Capture Gate ── */
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex flex-col gap-5 py-4"
+                  >
+                    <div className="flex gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-[10px] font-bold tracking-wider text-zinc-400">
+                        S
+                      </div>
+                      <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white/[0.06] px-4 py-3 text-[14px] leading-relaxed text-zinc-200">
+                        Great answers, {answers.name || "friend"}! Your audit is ready. Where should I send the results?
+                      </div>
+                    </div>
+
+                    <div className="ml-10 space-y-3">
+                      <div>
+                        <label className="mb-1 block text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          value={captureFirst}
+                          onChange={(e) => setCaptureFirst(e.target.value)}
+                          placeholder={answers.name || "John"}
+                          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-[14px] text-white outline-none transition placeholder:text-zinc-600 focus:border-white/[0.2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          value={captureLast}
+                          onChange={(e) => setCaptureLast(e.target.value)}
+                          placeholder="Smith"
+                          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-[14px] text-white outline-none transition placeholder:text-zinc-600 focus:border-white/[0.2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={captureEmail}
+                          onChange={(e) => setCaptureEmail(e.target.value)}
+                          placeholder="john@company.com"
+                          className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-[14px] text-white outline-none transition placeholder:text-zinc-600 focus:border-white/[0.2]"
+                        />
+                      </div>
+
+                      {captureError && (
+                        <p className="text-[13px] text-red-400">{captureError}</p>
+                      )}
+
+                      {computing && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <div className="flex gap-1">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" style={{ animationDelay: "0ms" }} />
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" style={{ animationDelay: "150ms" }} />
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" style={{ animationDelay: "300ms" }} />
+                          </div>
+                          <span className="text-[13px] text-zinc-400">Computing your audit...</span>
+                        </div>
+                      )}
+
+                      {error && (
+                        <div className="rounded-xl bg-red-500/10 px-4 py-3 text-[13px] text-red-400">
+                          {error}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleCaptureSubmit}
+                        disabled={captureSubmitting}
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-black transition hover:opacity-90 disabled:opacity-50"
+                      >
+                        {captureSubmitting ? "Processing..." : "Show My Results"}
+                        {!captureSubmitting && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
                 ) : (
                   <div className="flex flex-col gap-4">
                     {/* Intro message */}
@@ -470,7 +642,7 @@ export default function AuditChatbot({
               </div>
 
               {/* Input area — only when chatting */}
-              {!result && !computing && !isLastStep && step && (
+              {phase === "questions" && !result && !computing && !isLastStep && step && (
                 <div className="shrink-0 border-t border-white/[0.06] px-4 pb-4 pt-3">
                   {step.type === "select" ? (
                     <div className="flex flex-wrap gap-2">
@@ -565,12 +737,18 @@ function ResultScreen({
   fmt,
   onReset,
   onClose,
+  email,
+  emailSent,
+  onEmailResults,
 }: {
   result: AuditResult;
   name: string;
   fmt: (n: number) => string;
   onReset: () => void;
   onClose: () => void;
+  email?: string;
+  emailSent?: boolean;
+  onEmailResults?: () => void;
 }) {
   const stats = [
     { label: "Hours Saved / Month", value: `${result.hoursSavedPerMonth} hrs` },
@@ -706,6 +884,32 @@ function ResultScreen({
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </a>
+
+        {email && onEmailResults && (
+          <button
+            type="button"
+            onClick={onEmailResults}
+            disabled={emailSent}
+            className="flex items-center justify-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-6 py-3.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-zinc-300 transition hover:bg-white/[0.08] hover:text-white disabled:opacity-60"
+          >
+            {emailSent ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Sent!
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+                Email Me My Results
+              </>
+            )}
+          </button>
+        )}
 
         <button
           type="button"
