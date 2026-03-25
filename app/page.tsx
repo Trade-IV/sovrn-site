@@ -271,7 +271,7 @@ export default function HomePage() {
                 </button>
 
                 <Link
-                  href="https://app.sovrnhq.com/app/login"
+                  href="/app/login"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-3 rounded-lg px-4 py-3.5 text-[15px] font-medium tracking-wide text-zinc-300 transition-all duration-200 hover:bg-white/[0.06] hover:text-white"
                 >
